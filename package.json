@@ -1,0 +1,19 @@
+{
+  "name": "pr-demo",
+  "version": "1.0.0",
+  "description": "Node.js Backend with simple login and dashboard functionality",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node --watch server.js"
+  },
+  "keywords": ["nodejs", "express", "auth", "login", "dashboard"],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "dotenv": "^16.4.7",
+    "ejs": "^3.1.10",
+    "express": "^4.21.2",
+    "express-session": "^1.18.1"
+  }
+}

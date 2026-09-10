@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dashboard &mdash; Hi welcome <%= username %></title>
+  <meta name="description" content="PR Demo user dashboard with session details and overview">
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+  <!-- Ambient backdrop glows -->
+  <div class="ambient-glow glow-top-left"></div>
+  <div class="ambient-glow glow-bottom-right"></div>
+  <div class="ambient-glow glow-center"></div>
+
+  <div class="dashboard-wrapper">
+    <!-- Navigation Bar -->
+    <header class="dash-nav">
+      <div class="nav-brand">
+        <div class="nav-logo">PR</div>
+        <span class="nav-title">PR-Demo Portal</span>
+      </div>
+
+      <div class="nav-user-actions">
+        <div class="user-pill" title="Signed in as <%= username %>">
+          <div class="user-avatar"><%= username.charAt(0) %></div>
+          <span class="user-name-text"><%= username %></span>
+        </div>
+        <a href="/logout" class="btn-logout" id="logout-btn">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+            <polyline points="16 17 21 12 16 7"></polyline>
+            <line x1="21" y1="12" x2="9" y2="12"></line>
+          </svg>
+          <span>Sign Out</span>
+        </a>
+      </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="dash-content">
+      <!-- Hero Welcome Section -->
+      <section class="hero-card">
+        <div class="hero-badge">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor">
+            <circle cx="12" cy="12" r="10"></circle>
+          </svg>
+          AUTHENTICATED SESSION ACTIVE
+        </div>
+        
+        <h1 class="hero-title" id="welcome-message">
+          Hi welcome <span class="hero-highlight"><%= username %></span>
+        </h1>
+        
+        <p class="hero-desc">
+          You have successfully authenticated to the PR Demo Node.js backend. This dashboard demonstrates session-guarded route protection and dynamic user rendering.
+        </p>
+      </section>
+
+      <!-- Status & Session Metrics -->
+      <section class="metrics-grid">
+        <article class="metric-card">
+          <div class="metric-header">
+            <span class="metric-label">Active User</span>
+            <div class="metric-icon icon-blue">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                <circle cx="12" cy="7" r="4"></circle>
+              </svg>
+            </div>
+          </div>
+          <div class="metric-value"><%= user.name || username %></div>
+          <div class="metric-sub">Role: <%= user.role || 'Member' %></div>
+        </article>
+
+        <article class="metric-card">
+          <div class="metric-header">
+            <span class="metric-label">Session Status</span>
+            <div class="metric-icon icon-emerald">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+              </svg>
+            </div>
+          </div>
+          <div class="metric-value" style="color: #34d399;">Authenticated</div>
+          <div class="metric-sub">HTTP-Only Cookie Protected</div>
+        </article>
+
+        <article class="metric-card">
+          <div class="metric-header">
+            <span class="metric-label">Login Time</span>
+            <div class="metric-icon icon-purple">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="10"></circle>
+                <polyline points="12 6 12 12 16 14"></polyline>
+              </svg>
+            </div>
+          </div>
+          <div class="metric-value"><%= user.loginTime || 'Just now' %></div>
+          <div class="metric-sub">2-Hour Session Expiry</div>
+        </article>
+      </section>
+
+      <!-- System / API Information -->
+      <section class="info-box">
+        <div class="info-title">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="4 17 10 11 4 5"></polyline>
+            <line x1="12" y1="19" x2="20" y2="19"></line>
+          </svg>
+          Backend Integration Details
+        </div>
+        <ul class="info-list">
+          <li class="info-item">
+            <span>JSON Status:</span>
+            <code>GET /api/me</code>
+          </li>
+          <li class="info-item">
+            <span>Protected Route:</span>
+            <code>GET /dashboard</code>
+          </li>
+          <li class="info-item">
+            <span>Session Termination:</span>
+            <code>GET /logout</code>
+          </li>
+          <li class="info-item">
+            <span>Authentication Guard:</span>
+            <code>requireAuth Middleware</code>
+          </li>
+        </ul>
+      </section>
+    </main>
+
+    <footer class="dash-footer">
+      Node.js Express Backend &bull; PR Demo Application
+    </footer>
+  </div>
+</body>
+</html>

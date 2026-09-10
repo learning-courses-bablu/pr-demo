@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sign In &mdash; PR Demo Dashboard</title>
+  <meta name="description" content="Node.js authentication login page for PR Demo application">
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+  <!-- Ambient backdrop glows -->
+  <div class="ambient-glow glow-top-left"></div>
+  <div class="ambient-glow glow-bottom-right"></div>
+  <div class="ambient-glow glow-center"></div>
+
+  <main class="auth-wrapper">
+    <div class="auth-card">
+      <div class="brand-badge">
+        <span class="dot"></span>
+        PR-DEMO PLATFORM
+      </div>
+
+      <div class="auth-header">
+        <h1>Welcome Back</h1>
+        <p>Sign in with your credentials to access your dashboard</p>
+      </div>
+
+      <% if (error) { %>
+        <div class="alert-error" role="alert" id="error-banner">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="10"></circle>
+            <line x1="12" y1="8" x2="12" y2="12"></line>
+            <line x1="12" y1="16" x2="12.01" y2="16"></line>
+          </svg>
+          <span><%= error %></span>
+        </div>
+      <% } %>
+
+      <form action="/login" method="POST" id="login-form">
+        <div class="form-group">
+          <label for="username">Username</label>
+          <div class="input-wrapper">
+            <svg class="input-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+              <circle cx="12" cy="7" r="4"></circle>
+            </svg>
+            <input 
+              type="text" 
+              id="username" 
+              name="username" 
+              class="form-input" 
+              placeholder="e.g. bablu, admin"
+              value="<%= username || '' %>"
+              required 
+              autofocus
+            />
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="password">Password</label>
+          <div class="input-wrapper">
+            <svg class="input-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+              <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+            </svg>
+            <input 
+              type="password" 
+              id="password" 
+              name="password" 
+              class="form-input" 
+              placeholder="Enter your password"
+              required 
+            />
+          </div>
+        </div>
+
+        <button type="submit" class="btn-primary" id="login-submit-btn">
+          <span>Sign In to Dashboard</span>
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="5" y1="12" x2="19" y2="12"></line>
+            <polyline points="12 5 19 12 12 19"></polyline>
+          </svg>
+        </button>
+      </form>
+
+      <!-- Quick Demo Account Fill -->
+      <div class="demo-accounts">
+        <div class="demo-title">Quick Fill Demo Accounts</div>
+        <div class="demo-chips">
+          <button type="button" class="chip-btn" onclick="fillDemo('bablu', 'password123')" id="fill-bablu">
+            <span>bablu</span> &middot; <span>password123</span>
+          </button>
+          <button type="button" class="chip-btn" onclick="fillDemo('admin', 'admin123')" id="fill-admin">
+            <span>admin</span> &middot; <span>admin123</span>
+          </button>
+          <button type="button" class="chip-btn" onclick="fillDemo('guest', 'guest123')" id="fill-guest">
+            <span>guest</span> &middot; <span>guest123</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <script>
+    function fillDemo(user, pass) {
+      document.getElementById('username').value = user;
+      document.getElementById('password').value = pass;
+      document.getElementById('username').focus();
+    }
+  </script>
+</body>
+</html>
