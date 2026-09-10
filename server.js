@@ -1,32 +1,14 @@
 const express = require('express');
 const session = require('express-session');
 const path = require('path');
+const bcrypt = require('bcryptjs');
 require('dotenv').config();
+
+const { pool, initDb } = require('./db');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
-
-// In-memory demo user credentials
-const USERS = {
-  bablu: {
-    username: 'bablu',
-    password: 'password123',
-    name: 'Bablu Rawath',
-    role: 'Administrator',
-  },
-  admin: {
-    username: 'admin',
-    password: 'admin123',
-    name: 'System Admin',
-    role: 'Superuser',
-  },
-  guest: {
-    username: 'guest',
-    password: 'guest123',
-    name: 'Demo Guest',
-    role: 'Viewer',
-  },
-};
+const DB_NAME = process.env.DB_NAME || 'pr-demo';
 
 // Middleware: Request body parsing
 app.use(express.urlencoded({ extended: true }));
@@ -71,44 +53,168 @@ app.get('/', (req, res) => {
   return res.redirect('/login');
 });
 
-// 2. Login view
+// 2. Sign Up - View
+app.get('/signup', (req, res) => {
+  if (req.session && req.session.user) {
+    return res.redirect('/dashboard');
+  }
+  const error = req.query.error || null;
+  res.render('signup', {
+    error,
+    username: req.query.username || '',
+    name: req.query.name || '',
+    dbName: DB_NAME,
+  });
+});
+
+// 3. Sign Up - Process Registration (PostgreSQL Dynamic Storage)
+app.post('/signup', async (req, res) => {
+  const { username, name, password, confirmPassword } = req.body;
+
+  if (!username || !password || !name) {
+    return res.render('signup', {
+      error: 'Please fill in all required fields.',
+      username: username || '',
+      name: name || '',
+      dbName: DB_NAME,
+    });
+  }
+
+  if (password !== confirmPassword) {
+    return res.render('signup', {
+      error: 'Passwords do not match.',
+      username: username || '',
+      name: name || '',
+      dbName: DB_NAME,
+    });
+  }
+
+  if (password.length < 6) {
+    return res.render('signup', {
+      error: 'Password must be at least 6 characters long.',
+      username: username || '',
+      name: name || '',
+      dbName: DB_NAME,
+    });
+  }
+
+  const normalizedUser = username.trim().toLowerCase();
+
+  try {
+    // Check if username already exists
+    const existing = await pool.query(
+      'SELECT id FROM users WHERE LOWER(username) = $1',
+      [normalizedUser]
+    );
+
+    if (existing.rows.length > 0) {
+      return res.render('signup', {
+        error: `Username "${normalizedUser}" is already registered.`,
+        username: normalizedUser,
+        name: name || '',
+        dbName: DB_NAME,
+      });
+    }
+
+    // Hash password with bcrypt
+    const saltRounds = 10;
+    const hashedPassword = await bcrypt.hash(password, saltRounds);
+
+    // Insert user into PostgreSQL
+    await pool.query(
+      'INSERT INTO users (username, password, name, role) VALUES ($1, $2, $3, $4)',
+      [normalizedUser, hashedPassword, name.trim(), 'Member']
+    );
+
+    console.log(`> [Database] User registered: "${normalizedUser}"`);
+    return res.redirect(
+      `/login?success=Account+created+successfully!+Please+sign+in.&username=${encodeURIComponent(
+        normalizedUser
+      )}`
+    );
+  } catch (err) {
+    console.error('> [Database Error in /signup]:', err.message);
+    return res.render('signup', {
+      error: 'Database error: ' + err.message,
+      username: normalizedUser,
+      name: name || '',
+      dbName: DB_NAME,
+    });
+  }
+});
+
+// 4. Login - View
 app.get('/login', (req, res) => {
   if (req.session && req.session.user) {
     return res.redirect('/dashboard');
   }
   const error = req.query.error || null;
+  const success = req.query.success || null;
   const username = req.query.username || '';
-  res.render('login', { error, username });
+  res.render('login', { error, success, username, dbName: DB_NAME });
 });
 
-// 3. Login submission
-app.post('/login', (req, res) => {
+// 5. Login - Process Authentication (Dynamic PostgreSQL Validation)
+app.post('/login', async (req, res) => {
   const { username, password } = req.body;
 
   if (!username || !password) {
     return res.render('login', {
       error: 'Please enter both username and password.',
+      success: null,
       username: username || '',
+      dbName: DB_NAME,
     });
   }
 
   const normalizedUser = username.trim().toLowerCase();
-  const account = USERS[normalizedUser];
 
-  if (account && account.password === password) {
-    // Regenerate session ID on login to protect against session fixation
+  try {
+    // Fetch user from PostgreSQL
+    const result = await pool.query(
+      'SELECT * FROM users WHERE LOWER(username) = $1',
+      [normalizedUser]
+    );
+
+    const user = result.rows[0];
+
+    if (!user) {
+      return res.render('login', {
+        error: 'Invalid username or password. Please try again.',
+        success: null,
+        username: normalizedUser,
+        dbName: DB_NAME,
+      });
+    }
+
+    // Verify hashed password
+    const isMatch = await bcrypt.compare(password, user.password);
+
+    if (!isMatch) {
+      return res.render('login', {
+        error: 'Invalid username or password. Please try again.',
+        success: null,
+        username: normalizedUser,
+        dbName: DB_NAME,
+      });
+    }
+
+    // Initialize authenticated user session
     req.session.regenerate((err) => {
       if (err) {
         return res.render('login', {
           error: 'Session error, please try again.',
+          success: null,
           username: normalizedUser,
+          dbName: DB_NAME,
         });
       }
 
       req.session.user = {
-        username: account.username,
-        name: account.name,
-        role: account.role,
+        id: user.id,
+        username: user.username,
+        name: user.name || user.username,
+        role: user.role || 'Member',
         loginTime: new Date().toLocaleTimeString('en-US', {
           hour: '2-digit',
           minute: '2-digit',
@@ -116,26 +222,31 @@ app.post('/login', (req, res) => {
         }),
       };
 
+      console.log(`> [Auth] User logged in successfully: "${user.username}"`);
       return res.redirect('/dashboard');
     });
-  } else {
+  } catch (err) {
+    console.error('> [Database Error in /login]:', err.message);
     return res.render('login', {
-      error: 'Invalid username or password. Please try again.',
+      error: 'Database error: ' + err.message,
+      success: null,
       username: normalizedUser,
+      dbName: DB_NAME,
     });
   }
 });
 
-// 4. Protected Dashboard
+// 6. Protected Dashboard (greets with "Hi welcome <username>")
 app.get('/dashboard', requireAuth, (req, res) => {
   const user = req.session.user;
   res.render('dashboard', {
     username: user.username,
     user: user,
+    dbName: DB_NAME,
   });
 });
 
-// 5. Logout
+// 7. Logout
 app.all('/logout', (req, res) => {
   if (req.session) {
     req.session.destroy(() => {
@@ -147,7 +258,7 @@ app.all('/logout', (req, res) => {
   }
 });
 
-// 6. JSON Auth API endpoint (useful for frontend checks)
+// 8. JSON Auth API endpoint
 app.get('/api/me', (req, res) => {
   if (req.session && req.session.user) {
     return res.json({
@@ -161,11 +272,16 @@ app.get('/api/me', (req, res) => {
   });
 });
 
-// Start server
-app.listen(PORT, () => {
-  console.log(`> PR-Demo server is running at http://localhost:${PORT}`);
-  console.log(`> Login credentials:`);
-  console.log(`   - bablu / password123`);
-  console.log(`   - admin / admin123`);
-  console.log(`   - guest / guest123`);
-});
+// Start Server and initialize DB table
+async function startServer() {
+  await initDb();
+
+  app.listen(PORT, () => {
+    console.log(`> PR-Demo server is running at http://localhost:${PORT}`);
+    console.log(`> PostgreSQL Database: "${DB_NAME}"`);
+    console.log(`> Dynamic Sign Up: http://localhost:${PORT}/signup`);
+    console.log(`> Dynamic Login:   http://localhost:${PORT}/login`);
+  });
+}
+
+startServer();
