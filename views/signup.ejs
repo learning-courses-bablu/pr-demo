@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Sign In &mdash; PR Demo Dashboard</title>
-  <meta name="description" content="Node.js authentication login page for PR Demo application">
+  <title>Create Account &mdash; PR Demo</title>
+  <meta name="description" content="Sign up for a dynamic PostgreSQL-backed PR Demo account">
   <link rel="stylesheet" href="/css/style.css">
 </head>
 <body>
@@ -21,18 +21,9 @@
       </div>
 
       <div class="auth-header">
-        <h1>Welcome Back</h1>
-        <p>Sign in to your PostgreSQL-backed account (<%= dbName %>)</p>
+        <h1>Create Account</h1>
+        <p>Register dynamically to store your user in PostgreSQL (<%= dbName %>)</p>
       </div>
-
-      <% if (success) { %>
-        <div class="alert-success" role="alert" id="success-banner">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <polyline points="20 6 9 17 4 12"></polyline>
-          </svg>
-          <span><%= success %></span>
-        </div>
-      <% } %>
 
       <% if (error) { %>
         <div class="alert-error" role="alert" id="error-banner">
@@ -45,9 +36,9 @@
         </div>
       <% } %>
 
-      <form action="/login" method="POST" id="login-form">
+      <form action="/signup" method="POST" id="signup-form">
         <div class="form-group">
-          <label for="username">Username</label>
+          <label for="name">Full Name</label>
           <div class="input-wrapper">
             <svg class="input-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
               <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
@@ -55,13 +46,32 @@
             </svg>
             <input 
               type="text" 
+              id="name" 
+              name="name" 
+              class="form-input" 
+              placeholder="e.g. Bablu Rawath"
+              value="<%= name || '' %>"
+              required 
+              autofocus
+            />
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="username">Username</label>
+          <div class="input-wrapper">
+            <svg class="input-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="12" cy="12" r="4"></circle>
+              <path d="M16 8v5a3 3 0 0 0 6 0v-1a10 10 0 1 0-3.92 7.94"></path>
+            </svg>
+            <input 
+              type="text" 
               id="username" 
               name="username" 
               class="form-input" 
-              placeholder="Enter your username"
+              placeholder="e.g. bablu99"
               value="<%= username || '' %>"
               required 
-              autofocus
             />
           </div>
         </div>
@@ -78,14 +88,31 @@
               id="password" 
               name="password" 
               class="form-input" 
-              placeholder="Enter your password"
+              placeholder="Create a strong password"
               required 
             />
           </div>
         </div>
 
-        <button type="submit" class="btn-primary" id="login-submit-btn">
-          <span>Sign In to Dashboard</span>
+        <div class="form-group">
+          <label for="confirmPassword">Confirm Password</label>
+          <div class="input-wrapper">
+            <svg class="input-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+            </svg>
+            <input 
+              type="password" 
+              id="confirmPassword" 
+              name="confirmPassword" 
+              class="form-input" 
+              placeholder="Re-enter password"
+              required 
+            />
+          </div>
+        </div>
+
+        <button type="submit" class="btn-primary" id="signup-submit-btn">
+          <span>Create Account</span>
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <line x1="5" y1="12" x2="19" y2="12"></line>
             <polyline points="12 5 19 12 12 19"></polyline>
@@ -94,7 +121,7 @@
       </form>
 
       <div class="auth-switch-link">
-        Don't have an account? <a href="/signup" class="link-highlight">Create one now</a>
+        Already have an account? <a href="/login" class="link-highlight">Sign in here</a>
       </div>
     </div>
   </main>

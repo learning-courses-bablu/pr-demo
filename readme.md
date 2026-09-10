@@ -1,50 +1,45 @@
-# PR Demo - Node.js Authentication & Dashboard
+# PR Demo - PostgreSQL Authentication & Dashboard
 
-A lightweight, robust Node.js / Express backend with session-based authentication, a modern responsive login page, and a protected dashboard displaying personalized greetings.
+A Node.js / Express backend with dynamic user registration, authentication, and a personalized dashboard powered by PostgreSQL (`pr-demo` database).
 
-## Features
-- **Express.js & EJS**: Server-side rendered views for instant UI updates with zero flash-of-unauthenticated-content.
-- **Session Auth**: Secure HTTP-only cookies managed with `express-session`.
-- **Protected Routes**: Middleware guard (`requireAuth`) securing `/dashboard`.
-- **Modern UI Design**: Glassmorphic dark theme, gradient ambient glow, smooth focus transitions, responsive grid.
-- **Demo Accounts**: Pre-configured credentials with one-click quick-fill buttons.
+## Dynamic Database Authentication (PostgreSQL)
 
----
+### 1. Environment Configuration (`.env`)
+Configure your PostgreSQL credentials in `.env`:
+```env
+PORT=3000
+SESSION_SECRET=pr-demo-super-secret-key-2026
 
-## Quick Start
-
-### 1. Install Dependencies
-```bash
-npm install
+# PostgreSQL Database Configuration
+DB_HOST=localhost
+DB_PORT=5432
+DB_USER=postgres
+DB_PASSWORD=your_pgadmin_postgres_password
+DB_NAME=pr-demo
 ```
 
-### 2. Start the Server
-```bash
-# Start server
-npm start
-
-# Or with live reload
-npm run dev
+### 2. Automatic Schema Creation
+On startup, `db.js` automatically creates the `users` table in `pr-demo` if it does not exist:
+```sql
+CREATE TABLE IF NOT EXISTS users (
+  id SERIAL PRIMARY KEY,
+  username VARCHAR(50) UNIQUE NOT NULL,
+  password VARCHAR(255) NOT NULL,
+  name VARCHAR(100),
+  role VARCHAR(50) DEFAULT 'Member',
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
 ```
-The server starts at: **http://localhost:3000**
-
----
-
-## Demo Credentials
-
-| Username | Password | Role |
-| :--- | :--- | :--- |
-| `bablu` | `password123` | Administrator |
-| `admin` | `admin123` | Superuser |
-| `guest` | `guest123` | Viewer |
 
 ---
 
 ## Routes & Endpoints
 
 - `GET /` &rarr; Redirects to `/dashboard` (if logged in) or `/login`
-- `GET /login` &rarr; Sign-in page with quick-fill buttons
-- `POST /login` &rarr; Authenticates user and initiates session
-- `GET /dashboard` &rarr; Protected dashboard showing **"Hi welcome &lt;username&gt;"**
-- `GET /logout` &rarr; Clears session cookie and redirects to `/login`
-- `GET /api/me` &rarr; Returns JSON representation of the current session
+- `GET /signup` &rarr; Dynamic registration form
+- `POST /signup` &rarr; Hashes password with `bcryptjs` and stores user in PostgreSQL
+- `GET /login` &rarr; Dynamic login form
+- `POST /login` &rarr; Validates against `users` table with `bcryptjs.compare`
+- `GET /dashboard` &rarr; Protected dashboard greeting with **"Hi welcome &lt;username&gt;"**
+- `GET /logout` &rarr; Clears session and redirects to `/login`
+- `GET /api/me` &rarr; JSON session status

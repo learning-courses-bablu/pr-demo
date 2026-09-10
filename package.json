@@ -7,13 +7,21 @@
     "start": "node server.js",
     "dev": "node --watch server.js"
   },
-  "keywords": ["nodejs", "express", "auth", "login", "dashboard"],
+  "keywords": [
+    "nodejs",
+    "express",
+    "auth",
+    "login",
+    "dashboard"
+  ],
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "bcryptjs": "^3.0.3",
     "dotenv": "^16.4.7",
     "ejs": "^3.1.10",
     "express": "^4.21.2",
-    "express-session": "^1.18.1"
+    "express-session": "^1.18.1",
+    "pg": "^8.23.0"
   }
 }
